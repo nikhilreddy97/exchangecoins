@@ -3,9 +3,10 @@ package com.exchange.coins.exchangecoins.service;
 import java.util.List;
 
 import com.exchange.coins.exchangecoins.entity.Exchange;
+import com.exchange.coins.exchangecoins.entity.ExchangeResponse;
 
 public interface BillExchangeService {
 
-	List<Exchange> getCoinsForAmount(double amount);
+	List<ExchangeResponse> getCoinsForAmount(double amount);
 
 }

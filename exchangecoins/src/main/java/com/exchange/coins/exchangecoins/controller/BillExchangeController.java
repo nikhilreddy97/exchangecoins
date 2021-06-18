@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.exchange.coins.exchangecoins.entity.Exchange;
+import com.exchange.coins.exchangecoins.entity.ExchangeResponse;
 import com.exchange.coins.exchangecoins.service.BillExchangeService;
 
 @RestController
@@ -21,8 +22,8 @@ public class BillExchangeController {
 	BillExchangeService billExchangeService;
 
 	@GetMapping("/get/change/{amount}")
-	public ResponseEntity<List<Exchange>> getExchange(@PathVariable("amount") double amount) {
-		List<Exchange> response = billExchangeService.getCoinsForAmount(amount);
+	public ResponseEntity<List<ExchangeResponse>> getExchange(@PathVariable("amount") double amount) {
+		List<ExchangeResponse> response = billExchangeService.getCoinsForAmount(amount);
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 }

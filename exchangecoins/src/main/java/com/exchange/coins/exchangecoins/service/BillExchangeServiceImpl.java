@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.exchange.coins.exchangecoins.entity.Exchange;
+import com.exchange.coins.exchangecoins.entity.ExchangeResponse;
 import com.exchange.coins.exchangecoins.repository.BillExchangeRepository;
 
 @Service
@@ -21,13 +22,13 @@ public class BillExchangeServiceImpl implements BillExchangeService {
     BillExchangeRepository billExchangeRepository;
 
     @Override
-    public List<Exchange> getCoinsForAmount(double amount) {
+    public List<ExchangeResponse> getCoinsForAmount(double amount) {
 
         if (amount < 0.01) {
             throw new CoinMachineException("Please Enter more Bill");
         }
 
-        List<Exchange> exchangeDatas = new ArrayList<>();
+        
         boolean flag = true;
         int cent25 = 0;
         int cent10 = 0;
@@ -59,6 +60,7 @@ public class BillExchangeServiceImpl implements BillExchangeService {
         finalResult = new Exchange[4];
 
         double updateBill = amount;
+        List<ExchangeResponse> exchangeDatas = new ArrayList<>();
 
         for (int i = 0; i < machine.length; i++) {
             Exchange coinMachine = machine[i];
@@ -95,21 +97,50 @@ public class BillExchangeServiceImpl implements BillExchangeService {
         }
 
         double final_change = 0;
+        
         for (Exchange coinMachine : finalResult) {
 
             if (coinMachine != null) {
                 final_change += coinMachine.getCents() * coinMachine.getMaxCoins();
-                Exchange exchangeData = new Exchange();
-                exchangeData.setCents(coinMachine.getCents());
-                exchangeData.setMaxCoins(coinMachine.getMaxCoins());
-                exchangeDatas.add(exchangeData);
+                ExchangeResponse outputObj = new ExchangeResponse();
+                outputObj.setCents(coinMachine.getCents());
+                outputObj.setMaxCoins(coinMachine.getMaxCoins());
+                exchangeDatas.add(outputObj);
+                
+                // update the cents in db
+                
             }
 
         }
+        
+        
         if (amount > final_change) {
             throw new CoinMachineException("**No enough change**");
+            
         }
+        saveUpdatedObjsInDb(coinsResponse, exchangeDatas);
         return exchangeDatas;
+    }
+    
+    private Exchange getFilteredObject(List<Exchange> initialObjs, ExchangeResponse res) {
+    	for(Exchange obj : initialObjs) {
+    		if(obj.getCents() == res.getCents()) {
+    			obj.setMaxCoins(100 - res.getMaxCoins());
+    			return obj;
+    		}
+    	}
+    	return new Exchange();
+    	
+    }
+    private void saveObject(List<Exchange> initialObjs, ExchangeResponse res) {
+    	 billExchangeRepository.save(getFilteredObject(initialObjs, res));
+    
+    }
+    
+    private void saveUpdatedObjsInDb(List<Exchange> initialObjs, List<ExchangeResponse> res) {
+    	for(ExchangeResponse obj : res) {
+    		saveObject(initialObjs, obj);
+    	}
     }
 
 }
